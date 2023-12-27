@@ -5,6 +5,7 @@ const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const ThreadsTableTestHelper = require('../../../../tests/ThreadsTableTestHelper');
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
 const RepliesTableTestHelper = require('../../../../tests/RepliesTableTestHelper');
+const CommentLikesTableTestHelper = require('../../../../tests/CommentLikesTableTestHelper');
 
 const container = require('../../container');
 const createServer = require('../createServer');
@@ -20,6 +21,7 @@ describe('/threads endpoint', () => {
         await ThreadsTableTestHelper.cleanTable();
         await CommentsTableTestHelper.cleanTable();
         await RepliesTableTestHelper.cleanTable();
+        await CommentLikesTableTestHelper.cleanTable();
     });
 
     describe('when POST /threads', () => {
@@ -251,7 +253,13 @@ describe('/threads endpoint', () => {
             });
 
             await RepliesTableTestHelper.deleteReply('reply-xyz');
-            
+
+            await CommentLikesTableTestHelper.addLikeToComment({
+                id: 'like-123',
+                commentId: 'comment-123',
+                owner: requestAddUser1.id,
+            });
+
             // Action
             const response = await server.inject({
                 method: 'GET',
@@ -280,12 +288,14 @@ describe('/threads endpoint', () => {
                 .toStrictEqual(new Date().getDate());
             expect(requestAddUser1Comment.content)
                 .toStrictEqual(`komentar dari ${requestAddUser1.username}`);
+            expect(requestAddUser1Comment.likeCount).toEqual(1);
 
             expect(requestAddUser2Comment.id).toStrictEqual('comment-xyz');
             expect(requestAddUser2Comment.username).toStrictEqual(requestAddUser2.username);
             expect(new Date(requestAddUser2Comment.date).getDate())
                 .toStrictEqual(new Date().getDate());
             expect(requestAddUser2Comment.content).toStrictEqual('**komentar telah dihapus**');
+            expect(requestAddUser2Comment.likeCount).toEqual(0);
 
             const [requestAddUser1Reply, requestAddUser2Reply] = requestAddUser1Comment.replies;
 
