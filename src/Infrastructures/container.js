@@ -218,7 +218,7 @@ container.register([
         },
         {
           name: 'likeRepository',
-          internal: LikesRepository.name,
+          internal: LikeRepository.name,
         },
       ],
     },
